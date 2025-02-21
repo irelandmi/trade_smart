@@ -1,6 +1,0 @@
-default_connection_name = "cicd"
-
-[connections]
-[connections.cicd]
-account = "myorganization-myaccount"
-user = "smith"
