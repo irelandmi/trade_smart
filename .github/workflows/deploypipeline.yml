@@ -36,26 +36,31 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             echo "DEPLOY_ENV=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
-            export DEPLOY_ENV=${{ github.event.inputs.environment }}
           else
             case "${{ github.ref_name }}" in
               "main")
                 echo "DEPLOY_ENV=PROD" >> $GITHUB_ENV
-                export DEPLOY_ENV=PROD
                 ;;
               "qa")
                 echo "DEPLOY_ENV=QA" >> $GITHUB_ENV
-                export DEPLOY_ENV=QA
                 ;;
               "dev")
                 echo "DEPLOY_ENV=DEV" >> $GITHUB_ENV
-                export DEPLOY_ENV=DEV
                 ;;
             esac
           fi
 
-          # Construct REPO_NAME dynamically and set it in the environment
+          # Construct REPO_NAME dynamically
           echo "REPO_NAME=GIT_${DEPLOY_ENV}.GIT.COOL_DATA_OPS" >> $GITHUB_ENV
+
+      - name: Configure Snowflake CLI Connection
+        run: |
+          snow connection add default \
+            --account-name "${{ secrets.SNOWFLAKE_ACCOUNT }}" \
+            --username "${{ secrets.SNOWFLAKE_USER }}" \
+            --password-env-var "SNOWFLAKE_CONNECTIONS_DEFAULT_PASSWORD"
+
+          snow connection use default
 
       - name: Fetch repository changes
         run: snow git fetch "${REPO_NAME}"
