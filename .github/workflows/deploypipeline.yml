@@ -18,10 +18,10 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      SNOWFLAKE_CONNECTIONS_CICD_DEFAULT_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-      SNOWFLAKE_CONNECTIONS_CICD_DEFAULT_USER: ${{ secrets.SNOWFLAKE_USER }}
-      SNOWFLAKE_CONNECTIONS_CICD_DEFAULT_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
-      SNOWFLAKE_HOME: 
+      SNOWFLAKE_CONNECTIONS_DEFAULT_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_CONNECTIONS_DEFAULT_USER: ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_CONNECTIONS_DEFAULT_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -55,17 +55,13 @@ jobs:
           # Construct REPO_NAME dynamically
           echo "REPO_NAME=GIT_${DEPLOY_ENV}.GIT.COOL_DATA_OPS" >> $GITHUB_ENV
 
-      - name: Grant permissions to and config file
-        run: |
-          chown $USER ./datawarehouse/config/config.toml && chmod 0600 ./datawarehouse/config/config.toml
-
       - name: Configure Snowflake CLI Connection
         run: |
-          snow --config-file ./datawarehouse/config/config.toml connection test
+          snow connection test
 
       - name: Create example object
         run: |
-          snow --config-file ./datawarehouse/config/config.toml object create database name=my_db comment="Created with Snowflake CLI"
+          snow object create database name=my_db comment="Created with Snowflake CLI"
 
       - name: Fetch repository changes
         run: snow git fetch "${REPO_NAME}"
