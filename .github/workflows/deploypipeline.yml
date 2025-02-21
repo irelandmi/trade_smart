@@ -21,7 +21,7 @@ jobs:
       SNOWFLAKE_CONNECTIONS_TRADE_SMART_DEFAULT_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
       SNOWFLAKE_CONNECTIONS_TRADE_SMART_DEFAULT_USER: ${{ secrets.SNOWFLAKE_USER }}
       SNOWFLAKE_CONNECTIONS_TRADE_SMART_DEFAULT_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
-      SNOWFLAKE_HOME: "/home/runner/work/trade_smart/trade_smart/config/config.toml"
+      SNOWFLAKE_HOME: "/home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}/config/config.toml"
 
     steps:
       - name: Checkout repository
