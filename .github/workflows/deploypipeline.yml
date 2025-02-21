@@ -66,7 +66,7 @@ jobs:
 
       - name: Create schema
         run: |
-          snow object create schema name="RAW" comment="Created with Snowflake CLI" --if-not-exists
+          snow object create schema name="RAW" comment="Created with Snowflake CLI" --database ${{ env.DEPLOY_ENV }} --if-not-exists
 
       - name: Fetch repository changes
         run: snow git fetch "${REPO_NAME}"
