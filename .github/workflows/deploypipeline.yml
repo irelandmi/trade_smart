@@ -16,7 +16,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     env:
       SNOWFLAKE_CONNECTIONS_DEFAULT_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
       SNOWFLAKE_CONNECTIONS_DEFAULT_USER: ${{ secrets.SNOWFLAKE_USER }}
@@ -25,6 +25,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Install Snowflake CLI
+        uses: Snowflake-Labs/snowflake-cli-action@v1.5
+        with:
+          cli-version: "latest"
+          default-config-file-path: "config.toml"
 
       - name: Set environment variables
         run: |
@@ -47,9 +53,6 @@ jobs:
                 ;;
             esac
           fi
-
-          # Ensure DEPLOY_ENV is set before using it
-          echo "Resolved DEPLOY_ENV=${DEPLOY_ENV}"
 
           # Construct REPO_NAME dynamically and set it in the environment
           echo "REPO_NAME=GIT_${DEPLOY_ENV}.GIT.COOL_DATA_OPS" >> $GITHUB_ENV
