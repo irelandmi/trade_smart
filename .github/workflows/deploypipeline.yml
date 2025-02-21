@@ -57,7 +57,7 @@ jobs:
 
       - name: Configure Snowflake CLI Connection
         run: |
-          snow --config-file ./config/config.toml
+          snow --config-file ./datawarehouse/config/config.toml
 
       - name: Create example object
         run: |
