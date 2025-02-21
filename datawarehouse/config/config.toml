@@ -1,0 +1,4 @@
+[connections]
+[connections.trade_smart_user]
+account = "myorganization-myaccount"
+user = "smith"
