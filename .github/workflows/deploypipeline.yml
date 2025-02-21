@@ -58,7 +58,7 @@ jobs:
           snow connection add default \
             --account "${{ secrets.SNOWFLAKE_ACCOUNT }}" \
             --username "${{ secrets.SNOWFLAKE_USER }}" \
-            --password-env-var "SNOWFLAKE_CONNECTIONS_DEFAULT_PASSWORD"
+            --password ""${{ secrets.SNOWFLAKE_PASSWORD }}"
 
           snow connection use default
 
