@@ -1,0 +1,1 @@
+C:\venvs\dbt\Scripts\Activate.ps1

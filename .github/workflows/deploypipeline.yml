@@ -1,0 +1,76 @@
+name: Deploy data pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - DEV
+          - QA
+          - PROD
+        default: 'DEV'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    env:
+      REPO_NAME: ${{ format('GIT_{0}.GIT.COOL_DATA_OPS', env.DEPLOY_ENV) }}
+      SNOWFLAKE_CONNECTIONS_DEFAULT_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_CONNECTIONS_DEFAULT_USER: ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_CONNECTIONS_DEFAULT_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: Snowflake-Labs/snowflake-cli-action@v1.5
+        with:
+          cli-version: "latest"
+          default-config-file-path: "config.toml"
+
+      - name: Set environment variables
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "DEPLOY_ENV=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+          else
+            case "${{ github.ref_name }}" in
+              "main")
+                echo "DEPLOY_ENV=PROD" >> $GITHUB_ENV
+                ;;
+              "qa")
+                echo "DEPLOY_ENV=QA" >> $GITHUB_ENV
+                ;;
+              "dev")
+                echo "DEPLOY_ENV=DEV" >> $GITHUB_ENV
+                ;;
+            esac
+          fi
+
+      - name: Fetch repository changes
+        run: snow git fetch "${REPO_NAME}"
+
+      - name: Deploy data pipeline to ${{ env.DEPLOY_ENV }}
+        run: |
+          case "${{ env.DEPLOY_ENV }}" in
+            "PROD")
+              RETENTION_TIME=1
+              BRANCH="main"
+              ;;
+            "QA")
+              RETENTION_TIME=0
+              BRANCH="qa"
+              ;;
+            "DEV")
+              RETENTION_TIME=0
+              BRANCH="dev"
+              ;;
+          esac
+
+          snow git execute \
+            "@${REPO_NAME}/branches/${BRANCH}/git_pipeline/deploy_parametrized_pipeline.sql" \
+            -D "environment='${DEPLOY_ENV}'" \
+            -D "retention_time=${RETENTION_TIME}"
