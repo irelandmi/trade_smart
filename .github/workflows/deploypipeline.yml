@@ -60,9 +60,13 @@ jobs:
         run: |
           snow connection test
 
-      - name: Create example object
+      - name: Create database
         run: |
-          snow object create database name=my_db comment="Created with Snowflake CLI"
+          snow object create database name=${{ env.DEPLOY_ENV }} comment="Created with Snowflake CLI" --if-not-exists
+
+      - name: Create schema
+        run: |
+          snow object create schema name="RAW" comment="Created with Snowflake CLI" --if-not-exists
 
       - name: Fetch repository changes
         run: snow git fetch "${REPO_NAME}"
@@ -85,6 +89,6 @@ jobs:
           esac
 
           snow git execute \
-            "@${REPO_NAME}/branches/${BRANCH}/git_pipeline/deploy_parametrized_pipeline.sql" \
+            "@${REPO_NAME}/branches/main/git_pipeline/deploy_parametrized_pipeline.sql" \
             -D "environment='${DEPLOY_ENV}'" \
             -D "retention_time=${RETENTION_TIME}"
