@@ -18,7 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      REPO_NAME: ${{ format('GIT_{0}.GIT.COOL_DATA_OPS', env.DEPLOY_ENV) }}
       SNOWFLAKE_CONNECTIONS_DEFAULT_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
       SNOWFLAKE_CONNECTIONS_DEFAULT_USER: ${{ secrets.SNOWFLAKE_USER }}
       SNOWFLAKE_CONNECTIONS_DEFAULT_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
@@ -26,11 +25,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - uses: Snowflake-Labs/snowflake-cli-action@v1.5
-        with:
-          cli-version: "latest"
-          default-config-file-path: "config.toml"
 
       - name: Set environment variables
         run: |
@@ -49,6 +43,9 @@ jobs:
                 ;;
             esac
           fi
+
+          # Construct REPO_NAME dynamically and set it in the environment
+          echo "REPO_NAME=GIT_${DEPLOY_ENV}.GIT.COOL_DATA_OPS" >> $GITHUB_ENV
 
       - name: Fetch repository changes
         run: snow git fetch "${REPO_NAME}"
