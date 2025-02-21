@@ -1,3 +1,5 @@
+default_connection_name = "trade_smart_user"
+
 [connections]
 [connections.trade_smart_user]
 account = "myorganization-myaccount"
