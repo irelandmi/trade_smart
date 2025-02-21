@@ -55,6 +55,10 @@ jobs:
           # Construct REPO_NAME dynamically
           echo "REPO_NAME=GIT_${DEPLOY_ENV}.GIT.COOL_DATA_OPS" >> $GITHUB_ENV
 
+      - name: Grant permissions to and config file
+        run: |
+          chown $USER config.toml && chmod 0600 config.toml
+          
       - name: Configure Snowflake CLI Connection
         run: |
           snow --config-file ./datawarehouse/config/config.toml
