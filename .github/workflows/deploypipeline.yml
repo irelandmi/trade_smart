@@ -21,7 +21,7 @@ jobs:
       SNOWFLAKE_CONNECTIONS_TRADE_SMART_DEFAULT_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
       SNOWFLAKE_CONNECTIONS_TRADE_SMART_DEFAULT_USER: ${{ secrets.SNOWFLAKE_USER }}
       SNOWFLAKE_CONNECTIONS_TRADE_SMART_DEFAULT_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
-
+      SNOWFLAKE_HOME: 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -61,11 +61,11 @@ jobs:
 
       - name: Configure Snowflake CLI Connection
         run: |
-          snow --config-file ./datawarehouse/config/config.toml
+          snow --config-file ./datawarehouse/config/config.toml connection test
 
       - name: Create example object
         run: |
-          snow object create database name=my_db comment="Created with Snowflake CLI"
+          snow --config-file ./datawarehouse/config/config.toml object create database name=my_db comment="Created with Snowflake CLI"
 
       - name: Fetch repository changes
         run: snow git fetch "${REPO_NAME}"
