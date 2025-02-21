@@ -54,7 +54,11 @@ jobs:
 
       - name: Configure Snowflake CLI Connection
         run: |
-          snow object create database name=my_db comment="Created with Snowflake CLI" --config-file /home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}/config/config.toml
+          snow --config-file /home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}/config/config.toml
+
+      - name: Create example object
+        run: |
+          snow object create database name=my_db comment="Created with Snowflake CLI"
 
       - name: Fetch repository changes
         run: snow git fetch "${REPO_NAME}"
