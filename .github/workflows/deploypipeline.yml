@@ -30,19 +30,26 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             echo "DEPLOY_ENV=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+            export DEPLOY_ENV=${{ github.event.inputs.environment }}
           else
             case "${{ github.ref_name }}" in
               "main")
                 echo "DEPLOY_ENV=PROD" >> $GITHUB_ENV
+                export DEPLOY_ENV=PROD
                 ;;
               "qa")
                 echo "DEPLOY_ENV=QA" >> $GITHUB_ENV
+                export DEPLOY_ENV=QA
                 ;;
               "dev")
                 echo "DEPLOY_ENV=DEV" >> $GITHUB_ENV
+                export DEPLOY_ENV=DEV
                 ;;
             esac
           fi
+
+          # Ensure DEPLOY_ENV is set before using it
+          echo "Resolved DEPLOY_ENV=${DEPLOY_ENV}"
 
           # Construct REPO_NAME dynamically and set it in the environment
           echo "REPO_NAME=GIT_${DEPLOY_ENV}.GIT.COOL_DATA_OPS" >> $GITHUB_ENV
