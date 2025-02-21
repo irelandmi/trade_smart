@@ -31,6 +31,9 @@ jobs:
         with:
           cli-version: "latest"
 
+      - name: Print working directory
+        run: pwd
+
       - name: Set environment variables
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
@@ -54,7 +57,7 @@ jobs:
 
       - name: Configure Snowflake CLI Connection
         run: |
-          snow --config-file /home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}/config/config.toml
+          snow --config-file ./config/config.toml
 
       - name: Create example object
         run: |
