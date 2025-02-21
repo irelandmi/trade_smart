@@ -21,6 +21,7 @@ jobs:
       SNOWFLAKE_CONNECTIONS_TRADE_SMART_DEFAULT_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
       SNOWFLAKE_CONNECTIONS_TRADE_SMART_DEFAULT_USER: ${{ secrets.SNOWFLAKE_USER }}
       SNOWFLAKE_CONNECTIONS_TRADE_SMART_DEFAULT_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      SNOWFLAKE_HOME: "/home/runner/work/trade_smart/trade_smart/config/config.toml"
 
     steps:
       - name: Checkout repository
@@ -30,7 +31,6 @@ jobs:
         uses: Snowflake-Labs/snowflake-cli-action@v1.5
         with:
           cli-version: "latest"
-          default-config-file-path: "/home/runner/work/trade_smart/trade_smart/config/config.toml"
 
       - name: Set environment variables
         run: |
