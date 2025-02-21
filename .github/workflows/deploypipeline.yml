@@ -54,9 +54,6 @@ jobs:
             esac
           fi
 
-          # Construct REPO_NAME dynamically
-          echo "REPO_NAME=GIT_${DEPLOY_ENV}.GIT.COOL_DATA_OPS" >> $GITHUB_ENV
-
       - name: Configure Snowflake CLI Connection
         run: |
           snow connection test
@@ -90,6 +87,6 @@ jobs:
           esac
 
           snow git execute \
-            "@${REPO_NAME}/branches/main/datawarehouse/git_pipeline/deploy_parametrized_pipeline.sql" \
-            -D "environment='${DEPLOY_ENV}'" \
+            "@${{ env.REPO_NAME }}/branches/main/datawarehouse/git_pipeline/deploy_parametrized_pipeline.sql" \
+            -D "environment='${{ env.DEPLOY_ENV }}'" \
             -D "retention_time=${RETENTION_TIME}"
