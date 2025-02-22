@@ -74,7 +74,7 @@ jobs:
           case "${{ env.DEPLOY_ENV }}" in
             "PROD")
               RETENTION_TIME=1
-              BRANCH="main"
+              ENV="main"
               ;;
             "QA")
               RETENTION_TIME=0
@@ -87,6 +87,6 @@ jobs:
           esac
 
           snow git execute \
-            "@${{ env.REPO_NAME }}/branches/main/datawarehouse/git_pipeline/steps/*" --verbose --database "${{ env.REPO_NAME }}" \
+            "@${{ env.REPO_NAME }}/branches/main/datawarehouse/git_pipeline/steps/*.sql" --verbose --database "${{ env.DEPLOY_ENV }}" \
             -D "environment='${{ env.DEPLOY_ENV }}'" \
-            -D "retention_time=${RETENTION_TIME}"
+            -D "retention_time=${ RETENTION_TIME }"
