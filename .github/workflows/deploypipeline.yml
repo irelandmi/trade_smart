@@ -87,6 +87,6 @@ jobs:
           esac
 
           snow git execute \
-            "@${{ env.REPO_NAME }}/branches/main/datawarehouse/git_pipeline/steps/*" \
+            "@${{ env.REPO_NAME }}/branches/main/datawarehouse/git_pipeline/steps/*" --database "${{ env.REPO_NAME }}" \
             -D "environment='${{ env.DEPLOY_ENV }}'" \
             -D "retention_time=${RETENTION_TIME}"
