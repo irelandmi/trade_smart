@@ -88,5 +88,4 @@ jobs:
 
           snow git execute \
             "@${{ env.REPO_NAME }}/branches/main/datawarehouse/git_pipeline/steps/*.sql" --verbose --database "${{ env.DEPLOY_ENV }}" \
-            -D "environment='${{ env.DEPLOY_ENV }}'" \
-            -D "retention_time=${ RETENTION_TIME }"
+            -D "environment='${{ env.DEPLOY_ENV }}'"
