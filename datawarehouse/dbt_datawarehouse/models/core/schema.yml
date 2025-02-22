@@ -1,0 +1,9 @@
+
+version: 2
+
+models:
+  - name: macd
+    description: "Moving Average Convergence Divergence"
+
+  - name: rsi
+    description: "Relative Strength Index"
