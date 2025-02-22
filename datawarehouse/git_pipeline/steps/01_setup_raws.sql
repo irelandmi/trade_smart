@@ -4,13 +4,13 @@ CREATE OR ALTER TABLE {{environment}}.RAW.TEST_TABLE (
   TEXT_FIELD_2 STRING
 );
 
-create or replace table {{environment}}.RAW.land_ohlc (
+CREATE OR ALTER TABLE {{environment}}.RAW.land_ohlc (
     asset_pair string,
     JSON variant,
     meta_collection_timestamp datetime
 );
 
-create or replace table {{environment}}.RAW.ohlc (
+CREATE OR ALTER TABLE {{environment}}.RAW.ohlc (
     timestamp timestamp,
     trade_pair string,    
     open number,

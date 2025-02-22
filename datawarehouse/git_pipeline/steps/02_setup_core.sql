@@ -1,4 +1,4 @@
-create or replace table {{environment}}.CORE.ohlc (
+CREATE OR ALTER TABLE {{environment}}.CORE.ohlc (
     timestamp timestamp,
     trade_pair string,    
     open number,
