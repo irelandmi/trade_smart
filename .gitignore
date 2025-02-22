@@ -43,7 +43,6 @@ profiles.yml
 *.parquet
 *.csv
 data/
-models/
 notebooks/.ipynb_checkpoints/
 
 # IDE
