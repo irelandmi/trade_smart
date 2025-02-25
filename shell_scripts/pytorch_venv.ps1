@@ -1,0 +1,1 @@
+C:\venvs\pytorch_test\Scripts\Activate.ps1
