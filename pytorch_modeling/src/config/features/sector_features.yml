@@ -1,0 +1,8 @@
+count: 4
+last_updated: '2025-02-27 20:56:39'
+name: sector
+unique_values:
+- ENERGY
+- FINANCE
+- HEALTH
+- TECH
