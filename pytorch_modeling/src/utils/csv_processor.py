@@ -1,103 +1,177 @@
-import pandas as pd
-import yaml
 import os
-from typing import Dict, List
+import yaml
+import pandas as pd
+from typing import Dict
 from datetime import datetime
 
-def ensure_config_exists(config_path: str) -> None:
+def ensure_directory_exists(file_path: str) -> None:
     """
-    Ensure config file exists, create with default structure if it doesn't
+    Ensures that the directory for the given file_path exists.
+    Creates it if it doesn't.
     """
-    if not os.path.exists(config_path):
-        # Create directory if it doesn't exist
-        os.makedirs(os.path.dirname(config_path), exist_ok=True)
-        
-        # Default config structure
-        default_config = {
-            'categorical_features': {
-                'symbol': {'num_classes': 5},
-                'market_type': {'num_classes': 2},
-                'trade_type': {'num_classes': 3},
-                'sector': {'num_classes': 4}
-            },
-            'numerical_features': [
-                'price',
-                'volume',
-                'volatility',
-                'market_cap'
-            ]
-        }
-        
-        # Save default config
-        with open(config_path, 'w') as f:
-            yaml.dump(default_config, f, default_flow_style=False)
-        print(f"Created default config file at: {config_path}")
+    directory = os.path.dirname(file_path)
+    if directory and not os.path.exists(directory):
+        os.makedirs(directory, exist_ok=True)
 
-def extract_categorical_features(
-    csv_path: str,
-    config_path: str,
-    output_dir: str,
+def load_yaml_config(file_path: str) -> Dict:
+    """
+    Loads a YAML config from file_path if it exists, otherwise returns an empty dict.
+    """
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            return yaml.safe_load(f) or {}
+    return {}
+
+def save_yaml_config(data: Dict, file_path: str) -> None:
+    """
+    Saves a dictionary as a YAML file at file_path.
+    """
+    ensure_directory_exists(file_path)
+    with open(file_path, 'w') as f:
+        yaml.dump(data, f, default_flow_style=False)
+
+def load_or_infer_column_definitions(
+    df: pd.DataFrame,
+    column_definition_path: str
+) -> Dict[str, str]:
+    """
+    Loads column-to-encoder definitions from 'column_definition.yaml' if it exists.
+    If it does not exist, infer based on df dtypes and create it.
+
+    Inference rules:
+      - Object / String columns → Onehotencoder
+      - Numeric columns → StandardScaler
+
+    Returns:
+      A dictionary mapping column_name -> encoder_type
+    """
+    # 1. Try to load existing definitions
+    column_definitions = load_yaml_config(column_definition_path)
+    if column_definitions:
+        print(f"Loaded existing column definitions from {column_definition_path}")
+        return column_definitions
+    
+    # 2. If no file or empty definitions, infer from dtypes
+    inferred_definitions = {}
+    for col in df.columns:
+        if pd.api.types.is_numeric_dtype(df[col]):
+            inferred_definitions[col] = 'StandardScaler'
+        else:
+            inferred_definitions[col] = 'Onehotencoder'
+    # Save the inferred definitions to column_definition.yaml
+    save_yaml_config(inferred_definitions, column_definition_path)
+    print(f"No column_definition.yaml found. Inferred definitions saved to {column_definition_path}")
+    return inferred_definitions
+
+def init_preprocessing_structure() -> Dict:
+    """
+    Returns the initial structure for the main preprocessing config file.
+    """
+    return {
+        'Onehotencoder': {},
+        'Labelencoder': {},
+        'StandardScaler': {}
+    }
+
+def generate_preprocessing_config(
+    df: pd.DataFrame,
+    column_definitions: Dict[str, str],
+    preprocessing_config_path: str,
     force_update: bool = False
 ) -> None:
     """
-    Extract unique values for each categorical feature and save to separate YAML files
-    
-    Args:
-        csv_path: Path to the features CSV file
-        config_path: Path to the preprocessing config YAML
-        output_dir: Directory to save feature YAML files
-        force_update: If True, overwrites existing YAML files
-    """
-    # Ensure config file exists
-    ensure_config_exists(config_path)
-    
-    # Create output directory if it doesn't exist
-    os.makedirs(output_dir, exist_ok=True)
-    
-    # Load config
-    with open(config_path, 'r') as f:
-        config = yaml.safe_load(f)
-    
-    # Get categorical columns from config
-    categorical_cols = list(config['categorical_features'].keys())
-    
-    # Load CSV
-    df = pd.read_csv(csv_path)
-    
-    # Process each categorical column
-    for col in categorical_cols:
-        output_file = os.path.join(output_dir, f'{col}_features.yml')
-        
-        # Check if file exists and force_update is False
-        if os.path.exists(output_file) and not force_update:
-            print(f"Skipping {col}: Feature file already exists")
-            continue
-            
-        # Get unique values
-        unique_values = df[col].unique().tolist()
-        unique_values.sort()  # Sort for consistency
-        
-        # Create feature info
-        feature_info = {
-            'name': col,
-            'unique_values': unique_values,
-            'count': len(unique_values),
-            'last_updated': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        }
-        
-        # Save to YAML
-        with open(output_file, 'w') as f:
-            yaml.dump(feature_info, f, default_flow_style=False)
-        
-        print(f"Processed {col}: Found {len(unique_values)} unique values")
+    Generates or updates the YAML config file (preprocessing_config.yaml) with
+    metadata for each column based on its assigned category.
 
-if __name__ == "__main__":
-    # Example usage
-    PROJECT_PATH = os.environ['TRADE_SMART_PROJECT_PATH']
-    
+    Args:
+        df: Pandas DataFrame to analyze.
+        column_definitions: Mapping from column name to encoder type.
+        preprocessing_config_path: Destination path of the main config file.
+        force_update: If True, overwrite existing entries.
+    """
+    # Load existing preprocessing config (if any)
+    existing_config = load_yaml_config(preprocessing_config_path)
+
+    # If empty or force_update is True, start fresh
+    if not existing_config or force_update:
+        config = init_preprocessing_structure()
+    else:
+        # Ensure required top-level keys exist
+        config = existing_config
+        for cat in ['Onehotencoder', 'Labelencoder', 'StandardScaler']:
+            if cat not in config:
+                config[cat] = {}
+
+    # Populate config with metadata
+    for col_name, col_type in column_definitions.items():
+        if col_name not in df.columns:
+            print(f"Column '{col_name}' not in CSV; skipping.")
+            continue
+
+        if col_type not in ['Onehotencoder', 'Labelencoder', 'StandardScaler']:
+            print(f"Invalid encoder type '{col_type}' for column '{col_name}'; skipping.")
+            continue
+
+        # If already in config and not forcing update, skip
+        if (col_name in config[col_type]) and not force_update:
+            print(f"Column '{col_name}' already in '{col_type}' and force_update=False; skipping.")
+            continue
+
+        # Gather metadata
+        if col_type in ['Onehotencoder', 'Labelencoder']:
+            unique_vals = df[col_name].dropna().unique().tolist()
+            unique_vals.sort()
+            col_metadata = {
+                'unique_values': unique_vals,
+                'number_of_unique_classes': len(unique_vals),
+                'date_updated': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+        elif col_type == 'StandardScaler':
+            series = df[col_name].dropna()
+            col_metadata = {
+                'mean': float(series.mean()),
+                'std': float(series.std()),
+                'date_updated': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+        else:
+            # In case there's some other category in the future
+            col_metadata = {
+                'date_updated': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+
+        config[col_type][col_name] = col_metadata
+        print(f"Processed column '{col_name}' with encoder '{col_type}'.")
+
+    # Save the updated preprocessing config
+    save_yaml_config(config, preprocessing_config_path)
+    print(f"Preprocessing config saved at: {preprocessing_config_path}")
+
+def main():
+    """
+    Full pipeline:
+      1) Read CSV
+      2) Load or infer column definitions (column_definition.yaml)
+      3) Generate preprocessing config (preprocessing_config.yaml)
+    """
+    # Example paths (modify accordingly)
+    PROJECT_PATH = os.environ.get('TRADE_SMART_PROJECT_PATH', '/path/to/project')
     csv_path = os.path.join(PROJECT_PATH, 'data', 'raw', 'features.csv')
-    config_path = os.path.join(PROJECT_PATH, 'src', 'config', 'preprocessing_config.yml')
-    output_dir = os.path.join(PROJECT_PATH, 'src', 'config', 'features')
-    
-    # Set force_update=True to regenerate all feature files
-    extract_categorical_features(csv_path, config_path, output_dir, force_update=False)
+    column_definition_path = os.path.join(PROJECT_PATH, 'src', 'config', 'column_definition.yaml')
+    preprocessing_config_path = os.path.join(PROJECT_PATH, 'src', 'config', 'preprocessing_config.yaml')
+
+    # 1) Load CSV
+    df = pd.read_csv(csv_path)
+
+    # 2) Load (or infer) column definitions
+    column_definitions = load_or_infer_column_definitions(df, column_definition_path)
+
+    # 3) Generate preprocessing config
+    generate_preprocessing_config(
+        df=df,
+        column_definitions=column_definitions,
+        preprocessing_config_path=preprocessing_config_path,
+        force_update=False  # set to True to overwrite existing metadata
+    )
+
+if __name__ == '__main__':
+    main()

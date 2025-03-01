@@ -1,7 +1,0 @@
-count: 3
-last_updated: '2025-02-27 20:56:39'
-name: trade_type
-unique_values:
-- BUY
-- HOLD
-- SELL

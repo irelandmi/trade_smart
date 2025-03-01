@@ -25,16 +25,40 @@ class DataPreprocessor:
         self.scaler = StandardScaler()
         self.cache_file = "preprocessor_state.pkl"
         self.config = load_config()
+        self.label_encode_cols: List[str] = []
+        self.onehot_cols: List[str] = []
         
-    def fit(self, df: pd.DataFrame, categorical_cols: List[str], numerical_cols: List[str]):
+    def fit(self, 
+            df: pd.DataFrame, 
+            label_encode_cols: List[str], 
+            onehot_cols: List[str], 
+            numerical_cols: List[str]):
         """
-        Fit the preprocessor using one-hot encoding for categorical variables
+        Fit the preprocessor with separate handling for label encoding and one-hot encoding
+        
+        Args:
+            df: Input DataFrame
+            label_encode_cols: Columns to apply label encoding
+            onehot_cols: Columns to apply one-hot encoding
+            numerical_cols: Numerical columns to scale
         """
-        # Fit label encoders first (we need this for initial encoding)
-        for col in categorical_cols:
+        self.label_encode_cols = label_encode_cols
+        self.onehot_cols = onehot_cols
+        
+        if "UNKNOWN" not in df[label_encode_cols].values:
+            self.label_encode_cols.append("UNKNOWN")
+        
+        if "UNKNOWN" not in df[onehot_cols].values:
+            self.onehot_cols.append("UNKNOWN")
+            
+        # Validate all categorical columns are in config
+        all_cat_cols = label_encode_cols + onehot_cols
+        for col in all_cat_cols:
             if col not in self.config["categorical_features"]:
                 raise ValueError(f"Column {col} not found in config")
-                
+        
+        # Fit label encoders for both types of categorical columns
+        for col in all_cat_cols:
             self.label_encoders[col] = LabelEncoder()
             self.label_encoders[col].fit(df[col].astype(str))
             
@@ -49,23 +73,29 @@ class DataPreprocessor:
         # Save state
         self.save_state()
     
-    def transform(self, df: pd.DataFrame, categorical_cols: List[str], numerical_cols: List[str]) -> torch.Tensor:
+    def transform(self, df: pd.DataFrame, numerical_cols: List[str]) -> torch.Tensor:
         """
-        Transform the data using one-hot encoding for categorical variables
+        Transform the data using appropriate encoding for categorical variables
+        
+        Args:
+            df: Input DataFrame
+            numerical_cols: List of numerical columns
         """
         df_processed = df.copy()
         all_features = []
         
-        # Transform categorical columns to one-hot
-        for col in categorical_cols:
-            # First apply label encoding
+        # Transform label encoded columns
+        for col in self.label_encode_cols:
             label_encoded = self.label_encoders[col].transform(df_processed[col].astype(str))
-            
-            # Convert to tensor and apply one-hot encoding
+            tensor_encoded = torch.tensor(label_encoded, dtype=torch.long).unsqueeze(1)
+            all_features.append(tensor_encoded)
+        
+        # Transform one-hot encoded columns
+        for col in self.onehot_cols:
+            label_encoded = self.label_encoders[col].transform(df_processed[col].astype(str))
             tensor_encoded = torch.tensor(label_encoded, dtype=torch.long)
             num_classes = self.config["categorical_features"][col]["num_classes"]
             one_hot = F.one_hot(tensor_encoded, num_classes=num_classes)
-            
             all_features.append(one_hot)
         
         # Transform numerical

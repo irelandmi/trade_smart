@@ -1,0 +1,8 @@
+market_cap: StandardScaler
+market_type: Onehotencoder
+price: StandardScaler
+sector: Onehotencoder
+symbol: Onehotencoder
+trade_type: Onehotencoder
+volatility: StandardScaler
+volume: StandardScaler
