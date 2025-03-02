@@ -1,49 +1,54 @@
 Labelencoder: {}
 Onehotencoder:
   market_type:
-    date_updated: '2025-03-01 13:52:35'
-    number_of_unique_classes: 2
+    date_updated: '2025-03-02 21:19:27'
+    number_of_unique_classes: 3
     unique_values:
     - NASDAQ
-    - NYSE
+    - ligma
+    - abcd
+    - UNKNOWN
   sector:
-    date_updated: '2025-03-01 13:52:35'
-    number_of_unique_classes: 4
+    date_updated: '2025-03-02 21:19:27'
+    number_of_unique_classes: 5
     unique_values:
     - ENERGY
     - FINANCE
     - HEALTH
     - TECH
+    - UNKNOWN
   symbol:
-    date_updated: '2025-03-01 13:52:35'
-    number_of_unique_classes: 5
+    date_updated: '2025-03-02 21:19:27'
+    number_of_unique_classes: 6
     unique_values:
     - AAPL
     - AMZN
     - GOOGL
     - META
     - MSFT
+    - UNKNOWN
   trade_type:
-    date_updated: '2025-03-01 13:52:35'
-    number_of_unique_classes: 3
+    date_updated: '2025-03-02 21:19:27'
+    number_of_unique_classes: 4
     unique_values:
     - BUY
     - HOLD
     - SELL
+    - UNKNOWN
 StandardScaler:
   market_cap:
-    date_updated: '2025-03-01 13:52:35'
+    date_updated: '2025-03-02 21:19:27'
     mean: 491178005126.3996
     std: 286191867130.2625
   price:
-    date_updated: '2025-03-01 13:52:35'
+    date_updated: '2025-03-02 21:19:27'
     mean: 511.0569348258569
     std: 287.6884497925281
   volatility:
-    date_updated: '2025-03-01 13:52:35'
+    date_updated: '2025-03-02 21:19:27'
     mean: 0.2504730296817932
     std: 0.14052847497974819
   volume:
-    date_updated: '2025-03-01 13:52:35'
+    date_updated: '2025-03-02 21:19:27'
     mean: 500866.2403834814
     std: 286010.53766607563

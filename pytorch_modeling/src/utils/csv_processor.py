@@ -104,10 +104,12 @@ def generate_preprocessing_config(
 
     # Populate config with metadata
     for col_name, col_type in column_definitions.items():
+        # Skip if column doesn't exist in DataFrame
         if col_name not in df.columns:
             print(f"Column '{col_name}' not in CSV; skipping.")
             continue
 
+        # Skip if invalid encoder type
         if col_type not in ['Onehotencoder', 'Labelencoder', 'StandardScaler']:
             print(f"Invalid encoder type '{col_type}' for column '{col_name}'; skipping.")
             continue
@@ -120,25 +122,32 @@ def generate_preprocessing_config(
         # Gather metadata
         if col_type in ['Onehotencoder', 'Labelencoder']:
             unique_vals = df[col_name].dropna().unique().tolist()
+            # Ensure "UNKNOWN" is included
+            if "UNKNOWN" not in unique_vals:
+                unique_vals.append("UNKNOWN")
             unique_vals.sort()
+
             col_metadata = {
                 'unique_values': unique_vals,
                 'number_of_unique_classes': len(unique_vals),
                 'date_updated': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             }
+
         elif col_type == 'StandardScaler':
             series = df[col_name].dropna()
             col_metadata = {
-                'mean': float(series.mean()),
-                'std': float(series.std()),
+                'mean': float(series.mean()) if not series.empty else 0.0,
+                'std': float(series.std()) if not series.empty else 0.0,
                 'date_updated': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             }
+
         else:
             # In case there's some other category in the future
             col_metadata = {
                 'date_updated': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             }
 
+        # Update config
         config[col_type][col_name] = col_metadata
         print(f"Processed column '{col_name}' with encoder '{col_type}'.")
 
@@ -170,7 +179,7 @@ def main():
         df=df,
         column_definitions=column_definitions,
         preprocessing_config_path=preprocessing_config_path,
-        force_update=False  # set to True to overwrite existing metadata
+        force_update=True  # set to True to overwrite existing metadata
     )
 
 if __name__ == '__main__':
